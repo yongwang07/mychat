@@ -1,0 +1,18 @@
+spring:
+  redis:
+    blockWhenExhausted: true
+    database: 0
+    host: localhost
+    maxIdle: 100
+    maxTotal: 2000
+    maxWaitMillis: 60000
+    minEvictableIdleTimeMillis: 1800000
+    numTestsPerEvictionRun: 1024
+    password: ${SCAFFOLD_REDIS_PSW:123456}
+    port: 6379
+    softMinEvictableIdleTimeMillis: 10000
+    testOnBorrow: false
+    testWhileIdle: true
+    timeBetweenEvictionRunsMillis: 30000
+    connTimeout: 6000
+    readTimeout: 6000

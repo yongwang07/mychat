@@ -1,0 +1,59 @@
+package com.mychat.imServer.server.session.dao.impl;
+
+
+import com.mychat.imServer.server.session.dao.UserCacheDAO;
+import com.mychat.imServer.server.session.entity.SessionCache;
+import com.mychat.imServer.server.session.entity.UserCache;
+import com.mychat.util.JsonUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
+
+import java.util.concurrent.TimeUnit;
+
+@Repository("UserCacheRedisImpl")
+public class UserCacheRedisImpl implements UserCacheDAO {
+
+    public static final String REDIS_PREFIX = "UserCache:uid:";
+    @Autowired
+    protected StringRedisTemplate stringRedisTemplate;
+    private static final long CACHE_LONG = 60 * 4;
+
+    @Override
+    public void save(final UserCache uss) {
+        String key = REDIS_PREFIX + uss.getUserId();
+        String value = JsonUtil.pojoToJson(uss);
+        stringRedisTemplate.opsForValue().set(key, value, CACHE_LONG, TimeUnit.MINUTES);
+    }
+
+    @Override
+    public UserCache get(final String usID) {
+        String key = REDIS_PREFIX + usID;
+        String value = (String) stringRedisTemplate.opsForValue().get(key);
+        if (!StringUtils.isEmpty(value)) {
+            return JsonUtil.jsonToPojo(value, UserCache.class);
+        }
+        return null;
+    }
+
+    @Override
+    public void addSession(String uid, SessionCache session) {
+        UserCache us = get(uid);
+        if (null == us) {
+            us = new UserCache(uid);
+        }
+        us.addSession(session);
+        save(us);
+    }
+
+    @Override
+    public void removeSession(String uid, String sessionId) {
+        UserCache us = get(uid);
+        if (null == us) {
+            us = new UserCache(uid);
+        }
+        us.removeSession(sessionId);
+        save(us);
+    }
+}
